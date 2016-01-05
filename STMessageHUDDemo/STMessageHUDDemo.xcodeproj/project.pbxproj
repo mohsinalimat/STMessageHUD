@@ -14,7 +14,6 @@
 		77A96C4C1C3BB460008A1ECA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 77A96C4B1C3BB460008A1ECA /* Assets.xcassets */; };
 		77A96C4F1C3BB460008A1ECA /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 77A96C4D1C3BB460008A1ECA /* LaunchScreen.storyboard */; };
 		77A96C591C3BB4DC008A1ECA /* STMessageHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 77A96C581C3BB4DC008A1ECA /* STMessageHUD.m */; };
-		77C8A3921C3BD1EA00FBA116 /* STMessageHUDResource.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 77C8A3911C3BD1EA00FBA116 /* STMessageHUDResource.bundle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,7 +29,6 @@
 		77A96C501C3BB460008A1ECA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		77A96C571C3BB4DC008A1ECA /* STMessageHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = STMessageHUD.h; sourceTree = "<group>"; };
 		77A96C581C3BB4DC008A1ECA /* STMessageHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = STMessageHUD.m; sourceTree = "<group>"; };
-		77C8A3911C3BD1EA00FBA116 /* STMessageHUDResource.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = STMessageHUDResource.bundle; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,7 +86,6 @@
 		77A96C561C3BB491008A1ECA /* STMessageHUD */ = {
 			isa = PBXGroup;
 			children = (
-				77C8A3911C3BD1EA00FBA116 /* STMessageHUDResource.bundle */,
 				77A96C571C3BB4DC008A1ECA /* STMessageHUD.h */,
 				77A96C581C3BB4DC008A1ECA /* STMessageHUD.m */,
 			);
@@ -153,7 +150,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				77C8A3921C3BD1EA00FBA116 /* STMessageHUDResource.bundle in Resources */,
 				77A96C4F1C3BB460008A1ECA /* LaunchScreen.storyboard in Resources */,
 				77A96C4C1C3BB460008A1ECA /* Assets.xcassets in Resources */,
 				77A96C4A1C3BB460008A1ECA /* Main.storyboard in Resources */,
