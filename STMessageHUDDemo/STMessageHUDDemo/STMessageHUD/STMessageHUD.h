@@ -8,13 +8,14 @@
 
 #import <UIKit/UIKit.h>
 
+#define STMessageHUDSingleton  [STMessageHUD sharedMessageHUD]
 
-/** HUD 出现样式 */
+/** 活动提示框 出现样式 */
 typedef NS_ENUM(NSInteger, STHUDShowStyle) {
-    STHUDShowStyleNormal, // 出现在试图中心
-    STHUDShowStyleStatusBar, // 出现在状态栏中
-    STHUDShowStyleNavigationBar, // 出现在导航栏下方
-    STHUDShowStyleBottomBar, // 出现在屏幕下方  PS: 未实现
+    STHUDShowStyleNormal,       // 出现在视图中心
+    STHUDShowStyleStatusBar,    // 出现在状态栏中
+    STHUDShowStyleNavigationBar,// 出现在导航栏下方
+    STHUDShowStyleBottomBar     // 出现在屏幕下方  PS: 未实现
 };
 
 /** HUD 消息样式 */
@@ -26,29 +27,28 @@ typedef NS_ENUM(NSInteger, STHUDMessageType) {
 
 @interface STMessageHUD : UIWindow
 
+/** 1.设置内部视图的背景色 */
+@property (nonatomic, strong, nullable)UIColor *colorBackground;
+
+/** 2.是否需要双击手势, 双击手势默认行为: Dismiss 掉 STMessageHUD */
+@property (nonatomic, assign) BOOL needDoubleTap;
+
+/** 3.STMessageHUD 的出现样式 */
+@property (nonatomic, assign) STHUDShowStyle showStyle;
+
 /** 1.STMessageHUD 单例对象 */
 + (instancetype) sharedMessageHUD;
 
-@property (nonatomic, strong, nullable)UIColor *colorBackground; //
+
+/** 2.显示视图，默认为Loading样式 */
+- (void)show;
+
+
+/** 3.隐藏视图 */
+- (void)dismiss;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-/** STMessageHUD 的样式 */
-//@property (nonatomic, assign) STHUDStyle style;
-
-/** STMessageHUD 的出现样式 */
-@property (nonatomic, assign) STHUDShowStyle showStyle;
 
 /**
  *  用来存放 "对勾""叉子"等 图片的字典
@@ -57,13 +57,9 @@ typedef NS_ENUM(NSInteger, STHUDMessageType) {
 
 
 
-/** 是否需要双击手势, 双击手势默认行为: Dismiss 掉 STMessageHUD */
-@property (nonatomic, assign) BOOL needDoubleTap;
 
-/**
- *  show 方法会展示默认的 Loading 样式
- */
-+ (void) show;
+
+
 
 /**
  *  提示错误信息,  默认的 ShowStyle = STHUDShowStyleNormal
@@ -95,10 +91,7 @@ typedef NS_ENUM(NSInteger, STHUDMessageType) {
  */
 + (void) showSuccessMessage:(NSString *)message showStyle:(STHUDShowStyle)showStyle;
 
-/**
- *  隐藏
- */
-+ (void) dismiss;
+
 
 /**
  *  动画隐藏 (如果您希望在 UIViewController 的 viewWillDisappear 或 viewDidDisapper 中 dismiss 掉 STMessageHUD, 请使用 +(void) dismiss 方法)

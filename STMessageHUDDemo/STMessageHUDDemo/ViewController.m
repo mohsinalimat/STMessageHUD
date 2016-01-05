@@ -66,13 +66,14 @@ static CGFloat const duration = 0.7;
     switch (indexPath.row) {
         case STSelectedTypeShow:
         {
-            [STMessageHUD show];
+            [STMessageHUDSingleton show];
+            [STMessageHUDSingleton setColorBackground:[UIColor redColor]];
         }
             break;
             
         case STSelectedTypeShowDismissWithSuccessMessage:
         {
-            [STMessageHUD show];
+            [STMessageHUDSingleton show];
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 [STMessageHUD dismissWithMessage:@"Load Success" messageType:STHUDMessageTypeSuccess];
             });
@@ -81,7 +82,7 @@ static CGFloat const duration = 0.7;
             
         case STSelectedTypeShowDismissWithErrorMessage:
         {
-            [STMessageHUD show];
+            [STMessageHUDSingleton show];
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 [STMessageHUD dismissWithMessage:@"Load Error" messageType:STHUDMessageTypeError];
             });
