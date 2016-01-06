@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		776D59761C3C9EE100E1C13D /* UIView+XCF.m in Sources */ = {isa = PBXBuildFile; fileRef = 776D59751C3C9EE100E1C13D /* UIView+XCF.m */; };
 		77A96C411C3BB460008A1ECA /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 77A96C401C3BB460008A1ECA /* main.m */; };
 		77A96C441C3BB460008A1ECA /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 77A96C431C3BB460008A1ECA /* AppDelegate.m */; };
 		77A96C471C3BB460008A1ECA /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 77A96C461C3BB460008A1ECA /* ViewController.m */; };
@@ -17,6 +18,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		776D59741C3C9EE100E1C13D /* UIView+XCF.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+XCF.h"; sourceTree = "<group>"; };
+		776D59751C3C9EE100E1C13D /* UIView+XCF.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+XCF.m"; sourceTree = "<group>"; };
 		77A96C3C1C3BB460008A1ECA /* STMessageHUDDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = STMessageHUDDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		77A96C401C3BB460008A1ECA /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		77A96C421C3BB460008A1ECA /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -88,6 +91,8 @@
 			children = (
 				77A96C571C3BB4DC008A1ECA /* STMessageHUD.h */,
 				77A96C581C3BB4DC008A1ECA /* STMessageHUD.m */,
+				776D59741C3C9EE100E1C13D /* UIView+XCF.h */,
+				776D59751C3C9EE100E1C13D /* UIView+XCF.m */,
 			);
 			path = STMessageHUD;
 			sourceTree = "<group>";
@@ -163,6 +168,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				776D59761C3C9EE100E1C13D /* UIView+XCF.m in Sources */,
 				77A96C471C3BB460008A1ECA /* ViewController.m in Sources */,
 				77A96C441C3BB460008A1ECA /* AppDelegate.m in Sources */,
 				77A96C591C3BB4DC008A1ECA /* STMessageHUD.m in Sources */,

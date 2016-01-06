@@ -9,17 +9,14 @@
 #import "ViewController.h"
 #import "STMessageHUD.h"
 typedef NS_ENUM(NSInteger, STSelectedType) {
-    
-    STSelectedTypeShow = 2, //
+    STSelectedTypeShow , //
     STSelectedTypeShowDismissWithSuccessMessage,
     STSelectedTypeShowDismissWithErrorMessage,
     STSelectedTypeShowSuccessMessage,
     STSelectedTypeShowErrorMessage,
-    
-    STSelectedTypeShowSuccessMessageNavigationBar = 8,
+    STSelectedTypeShowSuccessMessageNavigationBar,
     STSelectedTypeShowErrorMessageNavigationBar,
-    
-    STSelectedTypeShowMessage = 11,
+    STSelectedTypeShowMessage,
 };
 
 static CGFloat const duration = 0.7;
@@ -66,59 +63,65 @@ static CGFloat const duration = 0.7;
     switch (indexPath.row) {
         case STSelectedTypeShow:
         {
-            [STMessageHUDSingleton show];
-            [STMessageHUDSingleton setColorBackground:[UIColor redColor]];
-        }
-            break;
-            
-        case STSelectedTypeShowDismissWithSuccessMessage:
-        {
-            [STMessageHUDSingleton show];
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [STMessageHUD dismissWithMessage:@"Load Success" messageType:STHUDMessageTypeSuccess];
-            });
-        }
-            break;
-            
-        case STSelectedTypeShowDismissWithErrorMessage:
-        {
-            [STMessageHUDSingleton show];
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [STMessageHUD dismissWithMessage:@"Load Error" messageType:STHUDMessageTypeError];
-            });
-        }
-            break;
-            
-        case STSelectedTypeShowSuccessMessage:
-        {
+//            STMessageHUDSingleton.message = @"加载中...";
             [STMessageHUD showSuccessMessage: @"Load Success" showStyle: STHUDShowStyleNormal];
-            //            [STMessageHUD showSuccessMessage: @"Loading Success"]; // 等价于上面这个方法, 默认的 ShowStyle 就是 STHUDShowStyleNormal
+//            [STMessageHUDSingleton show];
+//            STMessageHUDSingleton.message = @"加载中...";
+//            STMessageHUDSingleton.message = @"shenzhaoliang";
+//            [STMessageHUDSingleton show];
+//            [STMessageHUDSingleton setColorBackground:[UIColor redColor]];
         }
             break;
             
-        case STSelectedTypeShowErrorMessage:
-        {
-            [STMessageHUD showErrorMessage: @"Load Error" showStyle: STHUDShowStyleNormal];
-            //            [STMessageHUD showErrorMessage: @"Loading Error"]; // 等价于上面这个方法, 默认的 ShowStyle 就是 STHUDShowStyleNormal
-        }
-            break;
-            
-        case STSelectedTypeShowSuccessMessageNavigationBar:
-        {
-            [STMessageHUD showSuccessMessage: @"Load Success" showStyle: STHUDShowStyleNavigationBar];
-        }
-            break;
-            
-        case STSelectedTypeShowErrorMessageNavigationBar:
-        {
-            [STMessageHUD showErrorMessage: @"Load Error" showStyle: STHUDShowStyleNavigationBar];
-        }
-            break;
-            
-        case STSelectedTypeShowMessage:
-        {
-            [STMessageHUD showSuccessMessage: @"Refresh Success" showStyle: STHUDShowStyleStatusBar];
-        }
+//        case STSelectedTypeShowDismissWithSuccessMessage:
+//        {
+//            [STMessageHUDSingleton show];
+//            STMessageHUDSingleton.message = @"shenzhaoliang";
+//            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//                [STMessageHUDSingleton dismissWithMessage:@"Load Success" messageType:STHUDMessageTypeSuccess];
+//            });
+//        }
+//            break;
+//
+//        case STSelectedTypeShowDismissWithErrorMessage:
+//        {
+//            [STMessageHUDSingleton show];
+//            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//                [STMessageHUDSingleton dismissWithMessage:@"Load Error" messageType:STHUDMessageTypeError];
+//            });
+//        }
+//            break;
+//            
+//        case STSelectedTypeShowSuccessMessage:
+//        {
+//            [STMessageHUD showSuccessMessage: @"Load Success" showStyle: STHUDShowStyleNormal];
+//            //            [STMessageHUD showSuccessMessage: @"Loading Success"]; // 等价于上面这个方法, 默认的 ShowStyle 就是 STHUDShowStyleNormal
+//        }
+//            break;
+//            
+//        case STSelectedTypeShowErrorMessage:
+//        {
+//            [STMessageHUD showErrorMessage: @"Load Error" showStyle: STHUDShowStyleNormal];
+//            //            [STMessageHUD showErrorMessage: @"Loading Error"]; // 等价于上面这个方法, 默认的 ShowStyle 就是 STHUDShowStyleNormal
+//        }
+//            break;
+//            
+//        case STSelectedTypeShowSuccessMessageNavigationBar:
+//        {
+//            [STMessageHUD showSuccessMessage: @"Load Success" showStyle: STHUDShowStyleNavigationBar];
+//        }
+//            break;
+//            
+//        case STSelectedTypeShowErrorMessageNavigationBar:
+//        {
+//            [STMessageHUD showErrorMessage: @"Load Error" showStyle: STHUDShowStyleNavigationBar];
+//        }
+//            break;
+//            
+//        case STSelectedTypeShowMessage:
+//        {
+//            [STMessageHUD showSuccessMessage: @"Refresh Success" showStyle: STHUDShowStyleStatusBar];
+//        }
             
         default:
             break;

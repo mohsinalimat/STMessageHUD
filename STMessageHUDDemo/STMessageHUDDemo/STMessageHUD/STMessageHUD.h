@@ -36,18 +36,23 @@ typedef NS_ENUM(NSInteger, STHUDMessageType) {
 /** 3.STMessageHUD 的出现样式 */
 @property (nonatomic, assign) STHUDShowStyle showStyle;
 
-/** 1.STMessageHUD 单例对象 */
-+ (instancetype) sharedMessageHUD;
+/** 4.动画展示的持续时间 */
+@property (nonatomic, assign)CGFloat duration; //
 
+/** 5.提示信息的停留时间 */
+@property (nonatomic, assign)CGFloat timeStay; //
+
+/** 6.提示信息 */
+@property (nonatomic, strong, nullable)NSString *message; //
+
+@property (nonatomic, assign)STHUDMessageType messageType; //
+
+
+/** 1.STMessageHUD 单例对象 */
++ (instancetype)sharedMessageHUD;
 
 /** 2.显示视图，默认为Loading样式 */
 - (void)show;
-
-
-/** 3.隐藏视图 */
-- (void)dismiss;
-
-
 
 
 /**
@@ -96,7 +101,7 @@ typedef NS_ENUM(NSInteger, STHUDMessageType) {
 /**
  *  动画隐藏 (如果您希望在 UIViewController 的 viewWillDisappear 或 viewDidDisapper 中 dismiss 掉 STMessageHUD, 请使用 +(void) dismiss 方法)
  */
-+ (void) dismissWithAnimation;
+- (void) dismissWithAnimation;
 
 /**
  *  展示文字, 然后隐藏 (当您确定 STMessageHUD 正在处于 Loading 状态显示的时候, 调用此方法来提示用户成功 或 失败)
@@ -104,6 +109,6 @@ typedef NS_ENUM(NSInteger, STHUDMessageType) {
  *  @param message     需要展示的消息
  *  @param messageType 消息类型, 成功 或 失败
  */
-+ (void) dismissWithMessage:(NSString *)message messageType:(STHUDMessageType)messageType;
+- (void) dismissWithMessage:(NSString *)message messageType:(STHUDMessageType)messageType;
 
 @end

@@ -13,20 +13,24 @@
 
 
 
-static NSString *const STMessageHUDImageCheck = @"checkmark";
-static NSString *const STMessageHUDImageCross = @"cross";
-static NSString *const STMessageHUDImageProgress = @"progress";
+static NSString *const STMessageHUDImageCheck          = @"checkmark";
+static NSString *const STMessageHUDImageCross          = @"cross";
+static NSString *const STMessageHUDImageProgress       = @"progress";
 
-static NSString *const STMessageHUDImageCheckWhite = @"checkmark_white";
-static NSString *const STMessageHUDImageCrossWhite = @"cross_white";
-static NSString *const STMessageHUDImageProgressWhite = @"progress_white";
+static NSString *const STMessageHUDImageCheckWhite     = @"checkmark_white";
+static NSString *const STMessageHUDImageCrossWhite     = @"cross_white";
+static NSString *const STMessageHUDImageProgressWhite  = @"progress_white";
 
-static NSString *const STMessageHUDImageKeyCheck = @"Check";
-static NSString *const STMessageHUDImageKeyCross = @"Cross";
-static NSString *const STMessageHUDImageKeyProgress = @"Progress";
+static NSString *const STMessageHUDImageKeyCheck       = @"Check";
+static NSString *const STMessageHUDImageKeyCross       = @"Cross";
+static NSString *const STMessageHUDImageKeyProgress    = @"Progress";
 
 static NSString *const STMessageHUDSuccessAnimationKey = @"SuccessAnimation";
-static NSString *const STMessageHUDErrorAnimationKey = @"ErrorAnimation";
+static NSString *const STMessageHUDErrorAnimationKey   = @"ErrorAnimation";
+
+
+/** Loading 的默认文字信息 */
+static NSString *const STMessageHUDLoadingMessage = @"加载中...";
 
 /** 1.状态栏和导航栏的高度和 */
 static CGFloat const STNavgationBarHeight = 64;
@@ -41,35 +45,13 @@ static CGFloat const STStatusBarDefaultHeight = 20;
 static CGFloat const STMargin = 10;
 
 
-/** 动画展示的时间 */
-static CGFloat const STMessageHUDShowDuration = 0.2;
 
-/** 提示信息停留时间 */
-static CGFloat const STMessageHUDShowTimeDuration = 1.6;
-
-
-/** Loading 的默认文字信息 */
-static NSString *const STMessageHUDLoadingMessage = @"加载中...";
 
 @interface STMessageHUD ()
 
 
-
-
-
-/** 最大宽度 */
-@property (nonatomic, assign) CGFloat maxWidth;
-
 /** 用来判断是否已经展示 */
 @property (nonatomic, assign) BOOL isShow;
-
-/** 用来自动 Dismiss 的定时器 */
-@property (nonatomic, strong) NSTimer *autoDismissTimer;
-
-/** 是否需要 ImageView 动画 */
-@property (nonatomic, assign) BOOL needImageViewAnimation;
-
-
 
 
 /** 1.Tap 手势 */
@@ -89,6 +71,27 @@ static NSString *const STMessageHUDLoadingMessage = @"加载中...";
 
 /** 6.用来存放 "对勾""叉子"等 图片的字典 */
 @property (nonatomic, strong) NSMutableDictionary *dictionaryImage;
+
+/** 7.是否需要图片视图动画 */
+@property (nonatomic, assign) BOOL needImageAnimation;
+
+/** 8.成功时, 放大缩小的动画 */
+@property (nonatomic, strong, nullable)CAKeyframeAnimation *animationSuccess;
+
+/** 9.失败时, 抖动的动画 */
+@property (nonatomic, strong, nullable)CAKeyframeAnimation *animationError;
+
+/** 10.等待时, 旋转的动画 */
+@property (nonatomic, strong, nullable)CABasicAnimation *animationRotation;
+
+/** 11.定时器, 自定消失 */
+@property (nonatomic, strong) NSTimer *timerAutoDismiss;
+
+/** 12.警示框的最大宽度 */
+@property (nonatomic, assign) CGFloat widthMax;
+
+/** 13.图片 */
+@property (nonatomic, strong, nullable)UIImage *imageHud; //
 
 @end
 
@@ -137,43 +140,47 @@ static STMessageHUD *instance_ = nil;
     [self setWindowLevel:UIWindowLevelStatusBar];
     [self setAlpha:0.0];
     [self makeKeyAndVisible];
-
+    
     // 4.设置默认数据
     _colorBackground = [UIColor orangeColor];
     _needDoubleTap = YES;
-    _maxWidth = ScreenWidth / 2;
+    _widthMax = ScreenWidth / 2;
     _showStyle = STHUDShowStyleNormal;
-
+    _duration = 0.2;
+    _timeStay = 1.6;
+    _messageType = STHUDMessageTypeLoading;
+    
     // 2.添加子视图
     [self addSubview:self.contentView];
     [self.contentView addSubview:self.imageView];
     [self.contentView addSubview:self.imageLoading];
     [self.contentView addSubview:self.labelMessage];
-
+    
     // 3.添加手势
     [self addGestureRecognizer:self.tapDouble];
-
-
-
+    
+    
+    
     // 5.载入视图数据
     [self reloadData];
 }
 
 #pragma mark - 载入视图数据
-- (void) reloadData {
+- (void) reloadData
+{
     switch (self.showStyle) {
         case STHUDShowStyleNormal:
         {
             self.frame = CGRectMake(0, 0, ScreenWidth, ScreenHeight);
             self.windowLevel = UIWindowLevelNormal;
-
+            
             CGFloat contentWidth = ScreenWidth / 3.0;
             self.contentView.frame = CGRectMake(0, 0, contentWidth, contentWidth);
             self.contentView.center = self.center;
             self.contentView.layer.cornerRadius = 4;
         }
             break;
-
+            
         case STHUDShowStyleNavigationBar:
         {
             self.frame = CGRectMake(0, STNavgationBarHeight, ScreenWidth, STNavigationDefaultHeight);
@@ -182,7 +189,7 @@ static STMessageHUD *instance_ = nil;
             self.contentView.layer.cornerRadius = 0;
         }
             break;
-
+            
         case STHUDShowStyleStatusBar:
         {
             self.frame = CGRectMake(0, 0, ScreenWidth, STStatusBarDefaultHeight);
@@ -193,59 +200,47 @@ static STMessageHUD *instance_ = nil;
             self.contentView.layer.cornerRadius = 0;
         }
             break;
-
+            
         default:
             break;
     }
 }
 
-#pragma mark - 公有方法
-#pragma mark -
-#pragma mark 显示
-- (void) show {
-    [STMessageHUDSingleton stopTimer];
-    [STMessageHUDSingleton showMessageHUDWithMessage: STMessageHUDLoadingMessage
-                                               image: STMessageHUDSingleton.dictionaryImage[STMessageHUDImageKeyProgress]
-                                           showStyle: STHUDShowStyleNormal messageType: STHUDMessageTypeLoading];
+#pragma mark - 视图显示
+- (void)show {
+    [self stopTimer];
+    [STMessageHUDSingleton messageHUDShowWithMessage:STMessageHUDLoadingMessage
+                              image:self.dictionaryImage[STMessageHUDImageKeyProgress]
+                          showStyle:self.showStyle
+                        messageType:self.messageType];
 }
-#pragma mark 隐藏
-- (void) dismiss {
 
-    [STMessageHUDSingleton hideMessageHUDWithShowStyle: STMessageHUDSingleton.showStyle animation: NO];
-}
+
 #pragma mark 动画隐藏
-+ (void) dismissWithAnimation {
-    [STMessageHUDSingleton hideMessageHUDWithShowStyle: STMessageHUDSingleton.showStyle animation: YES];
+- (void) dismissWithAnimation
+{
+    [STMessageHUDSingleton messageHUDHideWithShowStyle:self.showStyle
+                                             animation:YES];
 }
 #pragma mark 显示文字, 然后隐藏
-+ (void) dismissWithMessage:(NSString *)message messageType:(STHUDMessageType)messageType {
-
-    STMessageHUD *messageHUD = [STMessageHUD sharedMessageHUD];
-
-    UIImage *showImage = nil;
-
+- (void) dismissWithMessage:(NSString *)message
+                messageType:(STHUDMessageType)messageType
+{
+    UIImage *imageShow;
+    
     switch (messageType) {
         case STHUDMessageTypeSuccess:
-        {
-            showImage = messageHUD.dictionaryImage[STMessageHUDImageKeyCheck];
-        }
-            break;
-
+            imageShow = self.dictionaryImage[STMessageHUDImageKeyCheck];break;
         case STHUDMessageTypeError:
-        {
-            showImage = messageHUD.dictionaryImage[STMessageHUDImageKeyCross];
-        }
-            break;
-
-        default:
-            break;
+            imageShow = self.dictionaryImage[STMessageHUDImageKeyCross];break;
+        default:break;
     }
-
-    messageHUD.needImageViewAnimation = YES;
-
-    [messageHUD configureContentWithMessage: message image: showImage messageType: messageType];
-
-    messageHUD.autoDismissTimer = [NSTimer scheduledTimerWithTimeInterval:STMessageHUDShowTimeDuration target:[self class] selector:@selector(dismissWithAnimation) userInfo:nil repeats:NO];
+    
+    self.needImageAnimation = YES;
+    [self setupContentWithMessage: message
+                                image: imageShow
+                          messageType: messageType];
+    [self timerAutoDismiss];
 }
 
 #pragma mark 提示错误信息,  默认的 ShowStyle = STHUDShowStyleNormal
@@ -255,382 +250,402 @@ static STMessageHUD *instance_ = nil;
 
 #pragma mark 提示错误信息
 + (void) showErrorMessage:(NSString *)message showStyle:(STHUDShowStyle)showStyle {
-    STMessageHUD *messageHUD = [STMessageHUD sharedMessageHUD];
-
-    [messageHUD showMessageHUDWithMessage: message image: messageHUD.dictionaryImage[STMessageHUDImageKeyCross] showStyle: showStyle messageType: STHUDMessageTypeError];
-
-    [messageHUD startTimer];
+    [STMessageHUDSingleton messageHUDShowWithMessage: message
+                                               image: STMessageHUDSingleton.dictionaryImage[STMessageHUDImageKeyCross]
+                                           showStyle: showStyle
+                                         messageType: STHUDMessageTypeError];
+    
+    [STMessageHUDSingleton startTimer];
 }
 
 #pragma mark 提示成功信息,  默认的 ShowStyle = STHUDShowStyleNormal
 + (void) showSuccessMessage:(NSString *)message {
-    [STMessageHUD showSuccessMessage: message showStyle: STHUDShowStyleNormal];
+    [STMessageHUD showSuccessMessage: message
+                           showStyle: STHUDShowStyleNormal];
 }
 
 #pragma mark 提示成功信息
 + (void) showSuccessMessage:(NSString *)message showStyle:(STHUDShowStyle)showStyle {
-
-    STMessageHUD *messageHUD = [STMessageHUD sharedMessageHUD];
-
-    [messageHUD showMessageHUDWithMessage: message image: messageHUD.dictionaryImage[STMessageHUDImageKeyCheck] showStyle: showStyle messageType: STHUDMessageTypeSuccess];
-
-    [messageHUD startTimer];
+    [STMessageHUDSingleton messageHUDShowWithMessage: message
+                                               image: STMessageHUDSingleton.dictionaryImage[STMessageHUDImageKeyCheck]
+                                           showStyle: showStyle
+                                         messageType: STHUDMessageTypeSuccess];
+    [STMessageHUDSingleton startTimer];
 }
 
 
-#pragma mark - 私有方法
-#pragma mark -
-#pragma mark 播放图片动画
-- (void) beginImageViewAnimationWithMessageType:(STHUDMessageType)messageType {
 
+#pragma mark - 播放不同信息时的动画
+- (void)animationWithMessageType:(STHUDMessageType)messageType
+{
     switch (messageType) {
-        case STHUDMessageTypeSuccess: // 成功时, "对勾"图片会有个放大缩小的动画
-        {
-            CAKeyframeAnimation *successAnimation = [CAKeyframeAnimation animationWithKeyPath: @"transform.scale"];
-            successAnimation.values = @[@(1.2), @(0.8), @(1.0)];
-            successAnimation.duration = 0.25f;
-            [self.imageView.layer addAnimation: successAnimation forKey: STMessageHUDSuccessAnimationKey];
-        }
+        case STHUDMessageTypeSuccess:
+            [self.imageView.layer addAnimation: self.animationSuccess
+                                        forKey: STMessageHUDSuccessAnimationKey];
             break;
-
-        case STHUDMessageTypeError: // 失败时, "叉子"图片会有个抖动的动画
-        {
-            CAKeyframeAnimation *errorAnimation = [CAKeyframeAnimation animationWithKeyPath: @"transform.translation.x"];
-            errorAnimation.values = @[@(-2), @(2), @(-2), @(2), @(-2), @(2), @(0)];
-            errorAnimation.duration = 0.25f;
-            [self.imageView.layer addAnimation: errorAnimation forKey: STMessageHUDErrorAnimationKey];
-        }
-
+        case STHUDMessageTypeError:
+            [self.imageView.layer addAnimation: self.animationError
+                                        forKey: STMessageHUDErrorAnimationKey];
         default:
             break;
     }
 }
-#pragma mark 刷新控件状态
-- (void) reloadDataState {
 
-    [self.imageLoading.layer removeAnimationForKey: STMessageHUDLoadingMessage];
-    [self.imageLoading.layer removeAllAnimations];
-    [self.imageView.layer removeAnimationForKey: STMessageHUDErrorAnimationKey];
-    [self.imageView.layer removeAnimationForKey: STMessageHUDSuccessAnimationKey];
-    [self.imageView.layer removeAllAnimations];
-    self.labelMessage.text = @"";
-    self.isShow = NO;
-    self.alpha = 0.0;
+#pragma mark - 移除控件状态
+- (void)removeDataState{
+    [self removeUIAnimations];
+    
+    [self.labelMessage setText:@""];
+    [self setIsShow:NO];
+    [self setAlpha:0];
 }
-#pragma mark 隐藏 STMessageHUD
-- (void) hideMessageHUDWithShowStyle:(STHUDShowStyle)showStyle animation:(BOOL)needAnimation{
 
+#pragma mark - 移除控件动画
+- (void)removeUIAnimations
+{
+    [self.imageLoading.layer removeAllAnimations];
+    [self.imageView.layer removeAllAnimations];
+}
+
+
+#pragma mark - 隐藏STMessageHUD
+- (void)messageHUDHideWithShowStyle:(STHUDShowStyle)showStyle
+                          animation:(BOOL)needAnimation{
+    
     // 1. 关闭用户交互
     self.userInteractionEnabled = NO;
-
+    
     // 2. 根据 ShowStyle, 设置 UI, 进行隐藏动画
     switch (showStyle) {
         case STHUDShowStyleNormal:
         {
             if (needAnimation) {
-                [UIView animateWithDuration: STMessageHUDShowDuration delay: 0 options: UIViewAnimationOptionCurveEaseInOut animations:^{
-                    self.alpha = 0.0;
+                [UIView animateWithDuration: self.duration
+                                      delay: 0
+                                    options: UIViewAnimationOptionCurveEaseInOut
+                                 animations:^{
+                    [self setAlpha:0.0];
                     self.contentView.transform = CGAffineTransformMakeScale(0.1, 0.1);
                 } completion:^(BOOL finished) {
                     self.contentView.transform = CGAffineTransformMakeScale(1.0, 1.0);
-                    [self reloadDataState];
                 }];
             } else {
-                [self reloadDataState];
+                
             }
+            
+            [self removeDataState];
         }
             break;
-
+            
         case STHUDShowStyleNavigationBar:
         {
             if (needAnimation) {
-                [UIView animateWithDuration: STMessageHUDShowDuration delay: 0 options: UIViewAnimationOptionCurveEaseInOut animations:^{
-                    self.alpha = 0.0;
+                [UIView animateWithDuration: self.duration
+                                      delay: 0
+                                    options: UIViewAnimationOptionCurveEaseInOut
+                                 animations:^{
+                    [self setAlpha:0.0];
                     self.contentView.transform = CGAffineTransformMakeScale(1.0, 0.1);
                 } completion:^(BOOL finished) {
                     self.contentView.transform = CGAffineTransformMakeScale(1.0, 1.0);
-                    [self reloadDataState];
                 }];
             } else {
-                [self reloadDataState];
+               
             }
+            
+            [self removeDataState];
+            
         }
             break;
-
+            
         case STHUDShowStyleStatusBar:
         {
             if (needAnimation) {
-                [UIView animateWithDuration: STMessageHUDShowDuration delay: 0 options: UIViewAnimationOptionCurveEaseInOut animations:^{
-                    self.alpha = 0.0;
+                [UIView animateWithDuration: self.duration
+                                      delay: 0
+                                    options: UIViewAnimationOptionCurveEaseInOut
+                                 animations:^{
+                     [self setAlpha:0.0];
                 } completion:^(BOOL finished) {
-                    [self reloadDataState];
                 }];
             } else {
-                [self reloadDataState];
+                
             }
+            
+            [self removeDataState];
         }
             break;
-
         case STHUDShowStyleBottomBar:
         {
-
+            
         }
             break;
-
+            
         default:
             break;
     }
 }
-#pragma mark 动画显示 STMessageHUD
-- (void) showMessageHUDWithMessage:(NSString *)message image:(UIImage *)image showStyle:(STHUDShowStyle)showStyle messageType:(STHUDMessageType)messageType {
 
+#pragma mark - 动画显示STMessageHUD
+- (void) messageHUDShowWithMessage:(NSString *)message
+                             image:(UIImage *)image
+                         showStyle:(STHUDShowStyle)showStyle
+                       messageType:(STHUDMessageType)messageType
+{
     @synchronized(self)  {
-
         if (self.isShow) {
-            [self hideMessageHUDWithShowStyle: STHUDShowStyleNormal animation: NO];
+            [self messageHUDHideWithShowStyle: STHUDShowStyleNormal
+                                    animation: NO];
         }
         self.isShow = YES;
-
+        
         // 0. 保存 ShowStyle
         self.showStyle = showStyle;
-
-
+        
+        
         // 2. 根据 ShowStyle, 设置 UI, 进行动画显示
         switch (showStyle) {
             case STHUDShowStyleNormal:
             {
                 // 3. 设置显示内容
-                [self configureContentWithMessage: message image: image messageType: messageType];
-
+                [self setupContentWithMessage: message image: image messageType: messageType];
+                
                 // 4. 播放动画
                 self.contentView.transform = CGAffineTransformMakeScale(0.2, 0.2);
-                [UIView animateWithDuration:STMessageHUDShowDuration delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                [UIView animateWithDuration:self.duration
+                                      delay:0
+                                    options:UIViewAnimationOptionCurveEaseInOut
+                                 animations:^{
                     self.alpha = 1.0;
                     self.contentView.transform = CGAffineTransformMakeScale(1.0, 1.0);
                 } completion:^(BOOL finished) {
-
-                    [self beginImageViewAnimationWithMessageType: messageType];
+                    [self animationWithMessageType: messageType];
                 }];
             }
                 break;
-
+                
             case STHUDShowStyleNavigationBar:
             {
                 // 3. 设置显示内容
-                [self configureContentWithMessage: message image: image messageType: messageType];
-
+                [self setupContentWithMessage: message image: image messageType: messageType];
+                
                 // 4. 播放动画
                 self.contentView.transform = CGAffineTransformMakeScale(1.0, 0.0);
-                [UIView animateWithDuration:STMessageHUDShowDuration delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                [UIView animateWithDuration:self.duration delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                     self.alpha = 1.0;
                     self.contentView.transform = CGAffineTransformMakeScale(1.0, 1.0);
                 } completion:^(BOOL finished) {
-
-                    [self beginImageViewAnimationWithMessageType: messageType];
+                    
+                    [self animationWithMessageType: messageType];
                 }];
             }
                 break;
-
+                
             case STHUDShowStyleStatusBar:
             {
                 // 3. 设置显示内容
-                [self configureContentWithMessage: message image: image messageType: messageType];
-
+                [self setupContentWithMessage: message image: image messageType: messageType];
+                
                 // 4. 动画显示
-                [UIView animateWithDuration:STMessageHUDShowDuration*2 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                [UIView animateWithDuration:self.duration*2 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                     self.alpha = 1.0;
                 } completion:^(BOOL finished) {
                 }];
             }
                 break;
-
+                
             case STHUDShowStyleBottomBar:
             {
-
+                
             }
                 break;
-
+                
             default:
                 break;
         }
     }
 }
 
-#pragma mark 配置显示内容 (适用于: STHUDShowStyleStatusBar)
-- (void) configureStatusBarStyleContentWithMessage:(NSString *)message image:(UIImage *)image messageType:(STHUDMessageType)messageType {
-
-    // 0. 停止动画
+#pragma mark - 配置显示内容 (适用于: STHUDShowStyleStatusBar)
+- (void)setupStatusBarWithImage:(UIImage *)image
+{
+    // 1.停止动画
     [self.imageLoading.layer removeAllAnimations];
     [self.imageView.layer removeAllAnimations];
-
-    // 1. 设置 Label 位置
-    self.labelMessage.frame = CGRectMake(0, 0, self.contentView.bounds.size.width - 2*STMargin, 20);
-
-    // 2. 设置 Label 文字
-    self.labelMessage.text = message;
+    
+    // 2.设置 Label 位置
+    CGFloat messageW = self.contentView.bounds.size.width - 2*STMargin;
+    CGFloat messageH = STStatusBarDefaultHeight;
+    self.labelMessage.frame = CGRectMake(0,
+                                         0,
+                                         messageW,
+                                         messageH);
 }
 
-#pragma mark 配置显示内容 (适用于: STHUDShowStyleNavigationBar)
-- (void) configureNavigationBarStyleContentWithMessage:(NSString *)message image:(UIImage *)image messageType:(STHUDMessageType)messageType {
-
-    // 0. 停止动画
+#pragma mark - 配置显示内容 (适用于: STHUDShowStyleNavigationBar)
+- (void)setupNavigationBarrWithMessage:(NSString *)message
+                                 image:(UIImage *)image
+                           messageType:(STHUDMessageType)messageType
+{
+    // 1.停止动画
     [self.imageLoading.layer removeAllAnimations];
     [self.imageView.layer removeAllAnimations];
-
-    // 1. 设置图片位置
+    
+    // 2.设置图片位置
     CGFloat scale = image.size.width / image.size.height;
-    CGFloat imageHeight = STNavigationDefaultHeight - STMargin*2;
-    CGFloat imageWidth = scale * imageHeight;
-    self.imageLoading.frame = CGRectMake(STMargin, STMargin, imageWidth, imageHeight);
+    CGFloat imageX = STMargin;
+    CGFloat imageY = STMargin;
+    CGFloat imageH = STNavigationDefaultHeight - STMargin*2;
+    CGFloat imageW = scale * imageH;
+    self.imageLoading.frame = CGRectMake(imageX, imageY, imageW, imageH);
     self.imageView.frame = self.imageLoading.frame;
-
-    // 2. 设置 Label 位置
-    self.labelMessage.frame = CGRectMake(CGRectGetMaxX(self.imageLoading.frame)+STMargin, 0, self.contentView.bounds.size.width - 2*STMargin - imageWidth, self.contentView.frame.size.height);
-
-    // 3. 显示或隐藏 Loading ImageView
+    
+    // 3.设置文本视图位置
+    CGFloat messageX = CGRectGetMaxX(self.imageLoading.frame)+STMargin;
+    CGFloat messageY = 0;
+    CGFloat messageW = self.contentView.bounds.size.width - 2*STMargin - imageW;
+    CGFloat messageH = self.contentView.frame.size.height;
+    self.labelMessage.frame = CGRectMake(messageX, messageY, messageW, messageH);
+    
+    // 4.显示或隐藏 Loading ImageView
     if ([message isEqualToString: STMessageHUDLoadingMessage]) {
-
+        
         self.imageLoading.hidden = NO;
         self.imageView.hidden = YES;
-
-        CABasicAnimation *rotationAnimation = [CABasicAnimation animationWithKeyPath: @"transform.rotation.z" ];
-        rotationAnimation.fromValue = @(0.0);
-        rotationAnimation.toValue = @( 100 * M_PI );
-        rotationAnimation.repeatCount = HUGE_VALF;
-        rotationAnimation.duration = 36.0f;
-        rotationAnimation.autoreverses = YES;
-        [self.imageLoading.layer addAnimation: rotationAnimation  forKey: STMessageHUDLoadingMessage];
+        
+        [self.imageLoading.layer addAnimation: self.animationRotation  forKey: STMessageHUDLoadingMessage];
     } else {
         self.imageLoading.hidden = YES;
         self.imageView.hidden = NO;
     }
-
-    // 11. 设置显示内容
-    //    CATransition *animation = [CATransition animation];
-    //    animation.duration = STMessageHUDShowDuration * 2;
-    self.labelMessage.text = message;
-    //    [self.labelMessage.layer addAnimation:animation forKey:nil];
+    
+    // 5. 设置显示内容
     self.imageView.image = image;
     self.imageLoading.image = self.dictionaryImage[STMessageHUDImageKeyProgress];
-
-    // 12. 播放 ImageView 动画
-    if (self.needImageViewAnimation) {
-        self.needImageViewAnimation = NO;
-        [self beginImageViewAnimationWithMessageType: messageType];
+    
+    // 6. 播放 ImageView 动画
+    if (self.needImageAnimation) {
+        self.needImageAnimation = NO;
+        [self animationWithMessageType: messageType];
     }
+
 }
 
 #pragma mark 配置显示内容 (适用于: STHUDShowStyleNormal 和 STHUDShowStyleNavigationBar)
-- (void) configureContentWithMessage:(NSString *)message image:(UIImage *)image messageType:(STHUDMessageType)messageType {
-
+- (void) setupContentWithMessage:(NSString *)message image:(UIImage *)image messageType:(STHUDMessageType)messageType {
+    
     if (self.showStyle == STHUDShowStyleStatusBar) {
-        [self configureStatusBarStyleContentWithMessage: message image: image messageType: messageType];
+        [self setupStatusBarWithImage:image];
         return;
     }
-
+    
     if (self.showStyle == STHUDShowStyleNavigationBar) {
-        [self configureNavigationBarStyleContentWithMessage: message image: image messageType: messageType];
+        [self setupNavigationBarrWithMessage:message image:image messageType:messageType];
         return;
     }
-
-    // 0. 停止动画
-    [self.imageLoading.layer removeAllAnimations];
-    [self.imageView.layer removeAllAnimations];
-
-    // 1. 计算 Message 的长度, 获取 Label 应有的高度
-    CGFloat labelMessageHeight = [message boundingRectWithSize: CGSizeMake(image.size.width + 2*STMargin, MAXFLOAT)
-                                                       options: NSStringDrawingUsesLineFragmentOrigin
-                                                    attributes: @{NSFontAttributeName : self.labelMessage.font}
-                                                       context: nil].size.height + STMargin;
-
-    // 2. 获取 Image 的高度
-    CGFloat imageHeight = image.size.height;
-
-    // 3. 计算并设置 STMessageHUD 的 bounds
-    CGFloat height = labelMessageHeight + imageHeight + 3*STMargin;
-    CGFloat width = height<self.maxWidth ? height : self.maxWidth;
-
-    // 4. 宽度计算完成后, 再计算一次 Label 的高度
-    CGFloat currentHeight = [message boundingRectWithSize: CGSizeMake(width - 2*STMargin, MAXFLOAT)
-                                                  options: NSStringDrawingUsesLineFragmentOrigin
-                                               attributes: @{NSFontAttributeName : self.labelMessage.font}
-                                                  context: nil].size.height + STMargin;
-
-    // 5. 如果计算后的 Label 高度 小于 之前 Label 的高度, 则 Self 的高度应该减去一个差值
-    if (currentHeight < labelMessageHeight) {
-        height -= (labelMessageHeight - currentHeight);
+    
+    // 1.停止动画
+     [self removeUIAnimations];
+    
+    // 2.图片的尺寸
+    CGFloat imageW = image.size.width;
+    CGFloat imageH = image.size.height;
+    
+    // 2.计算message的Size
+    CGSize sizeMessage = [message boundingRectWithSize:CGSizeMake(imageW + 2 * STMargin, MAXFLOAT)
+                                               options:NSStringDrawingUsesLineFragmentOrigin
+                                            attributes:@{NSFontAttributeName : self.labelMessage.font}
+                                               context:nil].size;
+    
+    
+    // 3.计算STMessageHUD的Size
+    CGFloat hudH = sizeMessage.height + imageH + 4 * STMargin;
+    CGFloat hudW = hudH < self.widthMax ? hudH : self.widthMax;
+    
+    // 4.计算文本框的Size
+    CGSize sizeLabel = [message boundingRectWithSize:CGSizeMake(hudW + 2 * STMargin, MAXFLOAT)
+                                             options:NSStringDrawingUsesLineFragmentOrigin
+                                          attributes:@{NSFontAttributeName : self.labelMessage.font}
+                                             context:nil].size;
+    // 5.如果计算后的Label高度小于之前Label的高度, 则Self的高度应该减去一个差值
+    if (sizeLabel.height < sizeMessage.height) {
+        hudH -= (sizeMessage.height - sizeLabel.height);
     }
-
-    // 6. 设置 UI 控件的位置
-    [UIView animateWithDuration: STMessageHUDShowDuration delay:0 options: UIViewAnimationOptionCurveEaseInOut animations:^{
-
-        // 7. 设置 内容视图的大小
-        self.contentView.bounds = (CGRect){CGPointZero, {width, height}};
-
-        // 8. 设置 Image 的 Frame
-        self.imageView.frame = CGRectMake((self.contentView.bounds.size.width - image.size.width) * 0.5, STMargin, image.size.width, imageHeight);
+    
+    // 6.设置UI控件的位置
+    [UIView animateWithDuration: self.duration
+                          delay:0
+                        options: UIViewAnimationOptionCurveEaseInOut
+                     animations:^{
+        
+        // 7.设置内容视图的大小
+        self.contentView.bounds = (CGRect){CGPointZero, {hudW, hudH}};
+        
+        // 8. 设置Image的Frame
+        CGFloat imageX = (self.contentView.bounds.size.width - imageW) / 2.0;
+        CGFloat imageY = STMargin;
+        self.imageView.frame = CGRectMake(imageX,
+                                          imageY,
+                                          imageW,
+                                          imageH);
         self.imageLoading.frame = self.imageView.frame;
-
-        // 9. 设置 Label 的 位置
-        self.labelMessage.frame = CGRectMake(STMargin, CGRectGetMaxY(self.imageView.frame) + STMargin, self.contentView.bounds.size.width - 2*STMargin, currentHeight);
+        
+        // 9. 设置Label的位置
+        CGFloat messageX = STMargin;
+        CGFloat messageY = CGRectGetMaxY(self.imageView.frame) + STMargin;
+        CGFloat messageW = self.contentView.bounds.size.width - 2*STMargin;
+        CGFloat messageH = sizeLabel.height;
+        self.labelMessage.frame = CGRectMake(messageX,
+                                             messageY,
+                                             messageW,
+                                             messageH);
     } completion:^(BOOL finished) {}];
 
     // 10. 显示或隐藏 Loading ImageView
     if ([message isEqualToString: STMessageHUDLoadingMessage]) {
-
+        
         self.imageLoading.hidden = NO;
         self.imageView.hidden = YES;
 
-        CABasicAnimation *rotationAnimation = [CABasicAnimation animationWithKeyPath: @"transform.rotation.z" ];
-        rotationAnimation.fromValue = @(0.0);
-        rotationAnimation.toValue = @( 100 * M_PI );
-        rotationAnimation.repeatCount = HUGE_VALF;
-        rotationAnimation.duration = 36.0f;
-        rotationAnimation.autoreverses = YES;
-        [self.imageLoading.layer addAnimation: rotationAnimation  forKey: STMessageHUDLoadingMessage];
+        [self.imageLoading.layer addAnimation: self.animationRotation
+                                       forKey: STMessageHUDLoadingMessage];
     } else {
         self.imageLoading.hidden = YES;
         self.imageView.hidden = NO;
     }
-
+    
     // 11. 设置显示内容
-    //    CATransition *animation = [CATransition animation];
-    //    animation.duration = STMessageHUDShowDuration * 2;
-    self.labelMessage.text = message;
-    //    [self.labelMessage.layer addAnimation:animation forKey:nil];
     self.imageView.image = image;
     self.imageLoading.image = self.dictionaryImage[STMessageHUDImageKeyProgress];
-
+    
     // 12. 播放 ImageView 动画
-    if (self.needImageViewAnimation) {
-        self.needImageViewAnimation = NO;
-        [self beginImageViewAnimationWithMessageType: messageType];
+    if (self.needImageAnimation) {
+        self.needImageAnimation = NO;
+        [self animationWithMessageType: messageType];
     }
 }
 
-#pragma mark 停止定时器
-- (void) stopTimer {
 
-    [[STMessageHUD sharedMessageHUD].autoDismissTimer invalidate];
-    [STMessageHUD sharedMessageHUD].autoDismissTimer = nil;
-}
-
-#pragma mark 开启定时器
-- (void) startTimer {
-
-    if ([STMessageHUD sharedMessageHUD].autoDismissTimer.valid) {
-        [[STMessageHUD sharedMessageHUD] stopTimer];
+#pragma mark - 开启定时器
+- (void) startTimer
+{
+    if (self.timerAutoDismiss.valid) {
+        [self stopTimer];
     }
-
-    [STMessageHUD sharedMessageHUD].autoDismissTimer = [NSTimer scheduledTimerWithTimeInterval:STMessageHUDShowTimeDuration target:[self class] selector:@selector(dismissWithAnimation) userInfo:nil repeats:NO];
+    [self timerAutoDismiss];
+}
+#pragma mark - 停止定时器
+- (void) stopTimer
+{
+    [self.timerAutoDismiss invalidate];
+    self.timerAutoDismiss = nil;
 }
 
-#pragma mark - 事件
-#pragma mark -
-#pragma mark Tap 手势事件
-- (void) tapAction:(UITapGestureRecognizer *)tap {
-    [[STMessageHUD sharedMessageHUD] stopTimer];
-    [STMessageHUD dismissWithAnimation];
+#pragma mark - Tap的手势事件
+- (void) tapAction:(UITapGestureRecognizer *)tap
+{
+    [self stopTimer];
+    [self dismissWithAnimation];
 }
 
 #pragma mark - setter方法
@@ -641,20 +656,45 @@ static STMessageHUD *instance_ = nil;
     [self.contentView setBackgroundColor:colorBackground];
 }
 
+/** 2.是否需要双击手势, 双击手势默认行为: Dismiss 掉 STMessageHUD */
 - (void)setNeedDoubleTap:(BOOL)needDoubleTap
 {
     _needDoubleTap = needDoubleTap;
-
     self.userInteractionEnabled = needDoubleTap;
 }
 
+/** 3.STMessageHUD 的出现样式 */
 - (void)setShowStyle:(STHUDShowStyle)showStyle
 {
     if (_showStyle != showStyle) {
         _showStyle = showStyle;
         [self reloadData];
     }
+    
+    
+    
+    
 }
+
+/** 4.动画展示的持续时间 */
+- (void)setDuration:(CGFloat)duration
+{
+    _duration = duration;
+}
+/** 5.提示信息的停留时间 */
+
+- (void)setTimeStay:(CGFloat)timeStay
+{
+    _timeStay = timeStay;
+}
+
+/** 6.提示信息 */
+- (void)setMessage:(NSString *)message
+{
+    _message = message;
+    [self.labelMessage setText:message];
+}
+
 #pragma mark - getter方法
 /** 1.Tap 手势 */
 - (UITapGestureRecognizer *)tapDouble
@@ -671,7 +711,7 @@ static STMessageHUD *instance_ = nil;
 {
     if (!_contentView) {
         _contentView = [[UIView alloc] init];
-
+        
         CGFloat contentWidth = ScreenWidth / 3.0;
         _contentView.frame = CGRectMake(0,
                                         0,
@@ -724,6 +764,7 @@ static STMessageHUD *instance_ = nil;
     return _labelMessage;
 }
 
+/** 6.用来存放 "对勾""叉子"等 图片的字典 */
 - (NSMutableDictionary *)dictionaryImage
 {
     if (!_dictionaryImage) {
@@ -735,4 +776,52 @@ static STMessageHUD *instance_ = nil;
     return _dictionaryImage;
 }
 
+/** 8.成功时, 放大缩小的动画 */
+- (CAKeyframeAnimation *)animationSuccess
+{
+    if (!_animationSuccess) {
+        _animationSuccess = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
+        _animationSuccess.values = @[@1.2, @0.8, @1.0];
+        _animationSuccess.duration = 0.25f;
+    }
+    return _animationSuccess;
+}
+
+/** 9.失败时, 抖动的动画 */
+- (CAKeyframeAnimation *)animationError
+{
+    if (!_animationError) {
+        _animationError = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.x"];
+        _animationError.values = @[@(-2), @(2), @(-2), @(2), @(-2), @(2), @(0)];
+        _animationError.duration = 0.25f;
+    }
+    return _animationError;
+}
+
+/** 10.等待时, 旋转的动画 */
+- (CABasicAnimation *)animationRotation
+{
+    if (!_animationRotation) {
+        _animationRotation = [CABasicAnimation animationWithKeyPath: @"transform.rotation.z" ];
+        _animationRotation.fromValue = @(0.0);
+        _animationRotation.toValue = @( 100 * M_PI );
+        _animationRotation.repeatCount = HUGE_VALF;
+        _animationRotation.duration = 36.0f;
+        _animationRotation.autoreverses = YES;
+    }
+    return _animationRotation;
+}
+
+/** 11.定时器, 自定消失 */
+- (NSTimer *)timerAutoDismiss
+{
+    if (!_timerAutoDismiss) {
+        _timerAutoDismiss = [NSTimer scheduledTimerWithTimeInterval:self.timeStay
+                                                             target:self
+                                                           selector:@selector(dismissWithAnimation)
+                                                           userInfo:nil
+                                                            repeats:NO];
+    }
+    return _timerAutoDismiss;
+}
 @end
