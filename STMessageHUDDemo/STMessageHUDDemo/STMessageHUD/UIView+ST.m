@@ -1,14 +1,14 @@
 //
-//  UIView+XCF.m
-//  XCFApp
+//  UIView+ST.m
+//  STApp
 //
-//  Created by https://github.com/STShenZhaoliang/XCFAPP on 15/12/1.
+//  Created by https://github.com/STShenZhaoliang/STMessageHUD on 15/12/1.
 //  Copyright © 2015年 ST. All rights reserved.
 //
 
-#import "UIView+XCF.h"
+#import "UIView+ST.h"
 
-@implementation UIView (XCF)
+@implementation UIView (ST)
 
 - (void)setX:(CGFloat)x
 {
@@ -196,13 +196,4 @@
 }
 
 
-- (void)setBordersWithColor:(UIColor *)color
-               cornerRadius:(CGFloat)cornerRadius
-                borderWidth:(CGFloat)borderWidth
-{
-    self.layer.borderColor  = color.CGColor;
-    self.layer.cornerRadius = cornerRadius;
-    self.layer.borderWidth  = borderWidth;
-    self.layer.masksToBounds = YES;
-}
 @end

@@ -7,15 +7,20 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "STMessageHUDConst.h"
 
-#define STMessageHUDSingleton  [STMessageHUD sharedMessageHUD]
+#import "NSObject+ST.h"
+
+
+
+//#define STMessageHUDSingleton  [STMessageHUD sharedMessageHUD]
 
 /** 活动提示框 出现样式 */
 typedef NS_ENUM(NSInteger, STHUDShowStyle) {
     STHUDShowStyleNormal,       // 出现在视图中心
     STHUDShowStyleStatusBar,    // 出现在状态栏中
     STHUDShowStyleNavigationBar,// 出现在导航栏下方
-    STHUDShowStyleBottomBar     // 出现在屏幕下方  PS: 未实现
+    STHUDShowStyleBottomBar     // 出现在屏幕下方
 };
 
 /** HUD 消息样式 */
@@ -49,66 +54,103 @@ typedef NS_ENUM(NSInteger, STHUDMessageType) {
 
 
 /** 1.STMessageHUD 单例对象 */
-+ (instancetype)sharedMessageHUD;
++ (instancetype _Nonnull)sharedMessageHUD;
 
 /** 2.显示视图，默认为Loading样式 */
 - (void)show;
 
 
-/**
- *  用来存放 "对勾""叉子"等 图片的字典
- */
-@property (nonatomic, strong, readonly) NSMutableDictionary *imageDictionary;
+
+
+/** 1.Tap 手势 */
+@property (nonatomic, strong, nullable)UITapGestureRecognizer *tapDouble;
+
+/** 2.内部视图 */
+@property (nonatomic, strong, nullable) UIView *contentView;
+
+/** 3.显示"对勾"、"叉子"等图片的 ImageView */
+@property (nonatomic, strong, nullable) UIImageView *imageView;
+
+/** 4.显示 Loading 图片的 ImageView */
+@property (nonatomic, strong, nullable) UIImageView *imageLoading;
+
+/** 5.显示 提示文字 的 Label */
+@property (nonatomic, strong, nullable) UILabel *labelMessage;
+
+/** 6.用来存放 "对勾""叉子"等 图片的字典 */
+@property (nonatomic, strong, nullable) NSMutableDictionary *dictionaryImage;
+
+/** 7.是否需要图片视图动画 */
+@property (nonatomic, assign) BOOL needImageAnimation;
+
+/** 8.成功时, 放大缩小的动画 */
+@property (nonatomic, strong, nullable)CAKeyframeAnimation *animationSuccess;
+
+/** 9.失败时, 抖动的动画 */
+@property (nonatomic, strong, nullable)CAKeyframeAnimation *animationError;
+
+/** 10.等待时, 旋转的动画 */
+@property (nonatomic, strong, nullable)CABasicAnimation *animationRotation;
+
+/** 11.定时器, 自定消失 */
+@property (nonatomic, strong, nullable) NSTimer *timerAutoDismiss;
+
+/** 12.警示框的最大宽度 */
+@property (nonatomic, assign) CGFloat widthMax;
+
+/** 13.图片 */
+@property (nonatomic, strong, nullable)UIImage *imageHud; //
+
+/** 14.用来判断是否已经展示 */
+@property (nonatomic, assign) BOOL isShow;
 
 
 
 
 
-
-
-/**
- *  提示错误信息,  默认的 ShowStyle = STHUDShowStyleNormal
- *
- *  @param message 文字信息
- */
-+ (void) showErrorMessage:(NSString *)message;
-
-/**
- *  提示错误信息
- *
- *  @param message   文字信息
- *  @param showStyle 展示方式
- */
-+ (void) showErrorMessage:(NSString *)message showStyle:(STHUDShowStyle)showStyle;
-
-/**
- *  提示成功信息,  默认的 ShowStyle = STHUDShowStyleNormal
- *
- *  @param message 文字信息
- */
-+ (void) showSuccessMessage:(NSString *)message;
-
-/**
- *  提示成功信息
- *
- *  @param message   文字信息
- *  @param showStyle 展示方式
- */
-+ (void) showSuccessMessage:(NSString *)message showStyle:(STHUDShowStyle)showStyle;
+///**
+// *  提示错误信息,  默认的 ShowStyle = STHUDShowStyleNormal
+// *
+// *  @param message 文字信息
+// */
+//+ (void) showErrorMessage:(NSString *_Nonnull)message;
+//
+///**
+// *  提示错误信息
+// *
+// *  @param message   文字信息
+// *  @param showStyle 展示方式
+// */
+//+ (void) showErrorMessage:(NSString *_Nonnull)message showStyle:(STHUDShowStyle)showStyle;
+//
+///**
+// *  提示成功信息,  默认的 ShowStyle = STHUDShowStyleNormal
+// *
+// *  @param message 文字信息
+// */
+//+ (void) showSuccessMessage:(NSString *_Nonnull)message;
+//
+///**
+// *  提示成功信息
+// *
+// *  @param message   文字信息
+// *  @param showStyle 展示方式
+// */
+//+ (void) showSuccessMessage:(NSString *_Nonnull)message showStyle:(STHUDShowStyle)showStyle;
 
 
 
-/**
- *  动画隐藏 (如果您希望在 UIViewController 的 viewWillDisappear 或 viewDidDisapper 中 dismiss 掉 STMessageHUD, 请使用 +(void) dismiss 方法)
- */
-- (void) dismissWithAnimation;
-
-/**
- *  展示文字, 然后隐藏 (当您确定 STMessageHUD 正在处于 Loading 状态显示的时候, 调用此方法来提示用户成功 或 失败)
- *
- *  @param message     需要展示的消息
- *  @param messageType 消息类型, 成功 或 失败
- */
-- (void) dismissWithMessage:(NSString *)message messageType:(STHUDMessageType)messageType;
+///**
+// *  动画隐藏 (如果您希望在 UIViewController 的 viewWillDisappear 或 viewDidDisapper 中 dismiss 掉 STMessageHUD, 请使用 +(void) dismiss 方法)
+// */
+//- (void) dismissWithAnimation;
+//
+///**
+// *  展示文字, 然后隐藏 (当您确定 STMessageHUD 正在处于 Loading 状态显示的时候, 调用此方法来提示用户成功 或 失败)
+// *
+// *  @param message     需要展示的消息
+// *  @param messageType 消息类型, 成功 或 失败
+// */
+//- (void) dismissWithMessage:(NSString *_Nonnull)message messageType:(STHUDMessageType)messageType;
 
 @end

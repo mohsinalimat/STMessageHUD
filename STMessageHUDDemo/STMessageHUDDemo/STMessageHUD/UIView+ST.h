@@ -1,14 +1,14 @@
 //
-//  UIView+XCF.h
-//  XCFApp
+//  UIView+ST.h
+//  STApp
 //
-//  Created by https://github.com/STShenZhaoliang/XCFAPP on 15/12/1.
+//  Created by https://github.com/STShenZhaoliang/STMessageHUD on 15/12/1.
 //  Copyright © 2015年 ST. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
 
-@interface UIView (XCF)
+@interface UIView (ST)
 /**
  *  1.间隔X值
  */
@@ -94,15 +94,6 @@
  *  5.设置标签值
  */
 - (UIView *(^)(NSInteger tag)) setTag;
-
-
-
-/**
- *  1.设置边框
- */
-- (void)setBordersWithColor:(UIColor *)color
-               cornerRadius:(CGFloat)cornerRadius
-                borderWidth:(CGFloat)borderWidth;
 
 @end
 

@@ -8,21 +8,9 @@
 
 #import "ViewController.h"
 #import "STMessageHUD.h"
-typedef NS_ENUM(NSInteger, STSelectedType) {
-    STSelectedTypeShow , //
-    STSelectedTypeShowDismissWithSuccessMessage,
-    STSelectedTypeShowDismissWithErrorMessage,
-    STSelectedTypeShowSuccessMessage,
-    STSelectedTypeShowErrorMessage,
-    STSelectedTypeShowSuccessMessageNavigationBar,
-    STSelectedTypeShowErrorMessageNavigationBar,
-    STSelectedTypeShowMessage,
-};
 
-static CGFloat const duration = 0.7;
+@interface ViewController ()
 
-@interface ViewController ()<UITableViewDataSource, UITableViewDelegate>
-@property (nonatomic, strong, nullable)UITableView *tableView; //
 @end
 
 @implementation ViewController
@@ -33,117 +21,27 @@ static CGFloat const duration = 0.7;
 {
     [super viewDidLoad];
     
-    [self.view setBackgroundColor:[UIColor redColor]];
-    [self.view addSubview:self.tableView];
 }
 
 #pragma mark - Delegate 视图委托
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
-    return 1;
-}
-
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
-    return 10;
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UITableViewCell"];
-    cell.textLabel.text = [NSString stringWithFormat:@"%d", indexPath.row];
-    [cell setBackgroundColor:[UIColor grayColor]];
-    
-    return cell;
-}
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    switch (indexPath.row) {
-        case STSelectedTypeShow:
-        {
-//            STMessageHUDSingleton.message = @"加载中...";
-            [STMessageHUD showSuccessMessage: @"Load Success" showStyle: STHUDShowStyleNormal];
-//            [STMessageHUDSingleton show];
-//            STMessageHUDSingleton.message = @"加载中...";
-//            STMessageHUDSingleton.message = @"shenzhaoliang";
-//            [STMessageHUDSingleton show];
-//            [STMessageHUDSingleton setColorBackground:[UIColor redColor]];
-        }
-            break;
-            
-//        case STSelectedTypeShowDismissWithSuccessMessage:
-//        {
-//            [STMessageHUDSingleton show];
-//            STMessageHUDSingleton.message = @"shenzhaoliang";
-//            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//                [STMessageHUDSingleton dismissWithMessage:@"Load Success" messageType:STHUDMessageTypeSuccess];
-//            });
-//        }
-//            break;
-//
-//        case STSelectedTypeShowDismissWithErrorMessage:
-//        {
-//            [STMessageHUDSingleton show];
-//            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//                [STMessageHUDSingleton dismissWithMessage:@"Load Error" messageType:STHUDMessageTypeError];
-//            });
-//        }
-//            break;
-//            
-//        case STSelectedTypeShowSuccessMessage:
-//        {
-//            [STMessageHUD showSuccessMessage: @"Load Success" showStyle: STHUDShowStyleNormal];
-//            //            [STMessageHUD showSuccessMessage: @"Loading Success"]; // 等价于上面这个方法, 默认的 ShowStyle 就是 STHUDShowStyleNormal
-//        }
-//            break;
-//            
-//        case STSelectedTypeShowErrorMessage:
-//        {
-//            [STMessageHUD showErrorMessage: @"Load Error" showStyle: STHUDShowStyleNormal];
-//            //            [STMessageHUD showErrorMessage: @"Loading Error"]; // 等价于上面这个方法, 默认的 ShowStyle 就是 STHUDShowStyleNormal
-//        }
-//            break;
-//            
-//        case STSelectedTypeShowSuccessMessageNavigationBar:
-//        {
-//            [STMessageHUD showSuccessMessage: @"Load Success" showStyle: STHUDShowStyleNavigationBar];
-//        }
-//            break;
-//            
-//        case STSelectedTypeShowErrorMessageNavigationBar:
-//        {
-//            [STMessageHUD showErrorMessage: @"Load Error" showStyle: STHUDShowStyleNavigationBar];
-//        }
-//            break;
-//            
-//        case STSelectedTypeShowMessage:
-//        {
-//            [STMessageHUD showSuccessMessage: @"Refresh Success" showStyle: STHUDShowStyleStatusBar];
-//        }
-            
-        default:
-            break;
-    }
-
-}
-
 #pragma mark - event response 事件相应
 
 #pragma mark - private methods 私有方法
+- (IBAction)click:(UIButton *)sender {
+    NSLog(@"%s, %@", __FUNCTION__, self);
+    
+    STMessageHUD *hud = [[STMessageHUD alloc]init];
+    hud.message = @"加载中...";
+    hud.showStyle = STHUDShowStyleNormal;
+    [hud show];
+//    STMessageHUDSingleton.message = @"加载中...";
+//    STMessageHUDSingleton.showStyle = STHUDShowStyleNormal;
+//    STMessageHUDSingleton.imageHud = STMessageHUDSingleton.dictionaryImage[STMessageHUDImageKeyProgress];
+//    [STMessageHUDSingleton show];
+}
 
 #pragma mark - getters and setters 属性
 
-- (UITableView *)tableView
-{
-    if (!_tableView) {
-        _tableView = [[UITableView alloc]initWithFrame:self.view.bounds
-                                                 style:UITableViewStylePlain];
-        [_tableView setDataSource:self];
-        [_tableView setDelegate:self];
-        [_tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"UITableViewCell"];
-    }
-    return _tableView;
-}
+
 @end
